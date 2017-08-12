@@ -37,22 +37,14 @@
             });
         
             $("[data-toggle=tooltip]").tooltip();
-
-            $('#edit').on('hidden.bs.modal', function(e) {
-                $('#edit').modal( 'hide' ).data( 'bs.modal', null );
-                $(this).removeData('bs.modal');
-            });
         });
 
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/riot/3.6.1/riot+compiler.js"></script>
     <script>
-        var url     = 'http://localhost:8000/api'
         riot.tag('user', '<yield/>');
         riot.mount('user');
-        this.title = "Bootstrap Snipp for Datatable";
-
-
+        this.title = "Hasil Ujian di Ivosight dengan RiotJS 3 dan laravel 5.4";
     </script>
 </body>
 </html>
