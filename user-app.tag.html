@@ -1,0 +1,284 @@
+<user-app class="row">
+    <div class="col-md-12">
+        <h4>{ title }</h4>
+        <p data-placement="top" data-toggle="tooltip" title="Add">
+            <button class="btn btn-success btn-xs" onclick={ add } ><span class="glyphicon glyphicon-plus"></span> Add</button>
+        </p>
+        <div class="table-responsive">
+            <table id="mytable" class="table table-bordred table-striped">
+                <thead>
+                    <th><input type="checkbox" id="checkall" /></th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Address</th>
+                    <th>Email</th>
+                    <th>Contact</th>
+                    <th>Edit</th>  
+                    <th>Delete</th>
+                </thead>
+                <tbody each="{ item in data }">
+                    <tr class="item-row">
+                        <td><input type="checkbox" class="checkthis" /> </td>
+                        <td>{ item.firstname }</td>
+                        <td>{ item.lastname }</td>
+                        <td>{ item.address }</td>
+                        <td>{ item.email }</td>
+                        <td>{ item.phone }</td>
+                        <td>
+                            <p data-placement="top" data-toggle="tooltip" title="Edit">
+                                <button class="btn btn-primary btn-xs" onclick={ edit } ><span class="glyphicon glyphicon-pencil"></span></button>
+                            </p>
+                        </td>
+                        <td>
+                            <p data-placement="top" data-toggle="tooltip" title="Delete">
+                                <button class="btn btn-danger btn-xs" onclick={ destroy } ><span class="glyphicon glyphicon-trash"></span></button>
+                            </p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="clearfix"></div>
+
+            <ul class="pagination pull-right" >
+                <li class="{ prev_btn }"><a href="javascript:void()" onclick={ prev }><span class="glyphicon glyphicon-chevron-left"></span></a></li>
+                <li class="{ next_btn }"><a href="javascript:void()" onclick={ next }><span class="glyphicon glyphicon-chevron-right"></span></a></li>
+            </ul>    
+        </div>
+
+    </div>
+
+    <div class="modal fade" id="edit" tabindex="-1" role="dialog" aria-labelledby="edit" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+                    <h4 class="modal-title custom_align" id="Heading">{ info }</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="id" value="{ id }">
+                    <div class="form-group">
+                        <input class="form-control " type="text" name="firstname" id="firstname" placeholder="Your Firstname" value="{ firstname }">
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control " type="text" name="lastname" id="lastname" placeholder="Your Lastname" value="{ lastname }">
+                    </div>
+                    <div class="form-group">
+                        <textarea rows="2" class="form-control" name="address" id="address" placeholder="CB 106/107 Street # 11 Wah Cantt Islamabad Pakistan">{ address }</textarea>
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control " type="email" name="email" id="email" placeholder="name@domain.com" value="{ email }">
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control " type="text" name="phone" id="phone" placeholder="+628xxxxxxxxx" value="{ phone }">
+                    </div>
+                </div>
+                <div class="modal-footer ">
+                    <button type="button" class="btn btn-warning btn-lg" style="width: 100%;" id="btn_save" onclick={ validate }><span class="glyphicon glyphicon-ok-sign"></span> Save Data</button>
+                </div>
+            </div>
+            <!-- /.modal-content --> 
+        </div>
+        <!-- /.modal-dialog --> 
+    </div>
+        
+    <div class="modal fade" id="delete" tabindex="-1" role="dialog" aria-labelledby="edit" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+                    <h4 class="modal-title custom_align" id="Heading">Delete this entry</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        <span class="glyphicon glyphicon-warning-sign"></span> Are you sure you want to delete this Record?
+                    </div>
+                    <input type="hidden" name="contact_id" id="contact_id" value="{ contact_id }">
+                </div>
+                <div class="modal-footer ">
+                    <button type="button" class="btn btn-success" onclick={ remove } id="btn_del" ><span class="glyphicon glyphicon-ok-sign"></span>Yes</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span>No</button>
+                </div>
+            </div>
+        <!-- /.modal-content --> 
+        </div>
+    <!-- /.modal-dialog --> 
+    </div>
+
+    <script>
+        var url     = 'http://localhost:8000/api'
+        var self    = this
+        self.info   = ''
+        self.next   = ''
+        self.prev   = ''
+        self.prev_btn = 'disabled'
+        self.next_btn = 'disabled'
+
+        $.get(url+'/user', function(data) {
+            self.next = data.next_page_url
+            self.prev = data.prev_page_url
+
+            if(data.next_page_url != null) {
+                self.next_btn = ''
+            }else{
+                self.next_btn = 'disabled'
+            }
+            
+            if(data.prev_page_url != null) {
+                self.prev_btn = ''
+            }else{
+                self.prev_btn = 'disabled'
+            }
+
+            self.data = data.data || []
+            self.update()
+        });
+
+        next(e){
+            $.get(url+'/user'+self.next, function(data) {
+                self.next = data.next_page_url
+                self.prev = data.prev_page_url
+
+                if(data.next_page_url != null) {
+                    self.next_btn = ''
+                }else{
+                    self.next_btn = 'disabled'
+                }
+
+                if(data.prev_page_url != null) {
+                    self.prev_btn = ''
+                }else{
+                    self.prev_btn = 'disabled'
+                }
+
+                self.data = data.data || []
+                self.update()
+            });
+        }
+
+        prev(e){
+            $.get(url+'/user'+self.prev, function(data) {
+                self.next = data.next_page_url
+                self.prev = data.prev_page_url
+
+                if(data.next_page_url != null) {
+                    self.next_btn = ''
+                }
+                if(data.prev_page_url != null) {
+                    self.prev_btn = ''
+                }
+                
+                self.data = data.data || []
+                self.update()
+            });
+        }
+
+        add(e){
+            e.preventUpdate = true // your tag will not update automatically
+            $("#edit").modal('toggle')
+            self.info       = 'Add Your Detail'
+            self.id         = ''
+            self.firstname  = ''
+            self.lastname   = ''
+            self.address    = ''
+            self.email      = ''
+            self.phone      = ''
+            self.update()
+        }
+
+        edit(e){
+            e.preventUpdate = true // your tag will not update automatically
+            $("#edit").modal('toggle')
+            
+            console.log(e.item)
+            
+            var data        = e.item.item
+            self.info       = 'Edit Your Detail'
+            self.id         = data['_id']
+            self.firstname  = data['firstname']
+            self.lastname   = data['lastname']
+            self.address    = data['address']
+            self.email      = data['email']
+            self.phone      = data['phone']
+            self.update()
+        }
+
+        validate() {
+            var post = {
+                id          : self.id,
+                firstname   : $('#firstname').val(),
+                lastname    : $('#lastname').val(),
+                address     : $('#address').val(),
+                email       : $('#email').val(),
+                phone       : $('#phone').val(),
+            };
+            console.log(post)
+            $('#btn_save').prop('disabled', true)
+            $.ajax({
+                url: url+"/user/save",
+                type: 'POST',
+                dataType: "JSON",
+                data: post,
+                success: function(data) {
+                    if (data.status == true) {
+                        alert(data.message)
+                        $('#edit').modal( 'hide' ).data( 'bs.modal', null )
+                        $('#edit').removeData('bs.modal')
+                        location.reload(true)
+                    } else {
+                        alert(data.message);
+                    }
+                    $('#btn_save').prop('disabled', false)
+                }, error: function(x, t, m) {
+                    if (t === "timeout") {
+                        alert(m);
+                    } else {
+                        alert(m);
+                    }
+                    $('#btn_save').prop('disabled', false)
+                }
+            });
+        }
+
+        self.contact_id = ''
+
+        destroy(e){
+            e.preventUpdate = true // your tag will not update automatically
+            $("#delete").modal('toggle')
+            
+            console.log(e.item)
+            
+            var data        = e.item.item
+            self.contact_id = data['_id']
+            self.update()
+        }
+
+        remove() {
+            $('#btn_del').prop('disabled', true)
+            $.ajax({
+                url: url+"/user/delete/"+self.contact_id,
+                type: 'GET',
+                dataType: "JSON",
+                success: function(data) {
+                    if (data.status == true) {
+                        $('#delete').modal( 'hide' ).data( 'bs.modal', null )
+                        $('#delete').removeData('bs.modal')
+                        alert(data.message)
+                        location.reload(true)
+                    } else {
+                        alert(data.message);
+                    }
+                    $('#btn_del').prop('disabled', false)
+                }, error: function(x, t, m) {
+                    if (t === "timeout") {
+                        alert(m);
+                    } else {
+                        alert(m);
+                    }
+                    $('#btn_del').prop('disabled', false)
+                }
+            });
+        }
+
+    </script>
+</user-app>
